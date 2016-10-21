@@ -1,0 +1,194 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>STASIS/DREAM</title>
+  <meta name="description" content="The HTML5 Herald">
+  <meta name="author" content="SitePoint">
+
+  <link rel="stylesheet" href="client/css/style.css">
+
+  <!--[if lt IE 9]>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.js"></script>
+  <![endif]-->
+</head>
+
+<body>
+
+	<div id="signDiv">
+		Username:<input id="signDiv-username" type="text"></input>
+		</br>
+		Password:<input id="signDiv-password" type="password"></input>
+		<button id="signDiv-signIn">Sign in</button>
+		<button id="signDiv-signUp">Sign up</button>
+	</div>
+
+	<div id="gameDiv" style="display:none;">
+		<canvas id="ctx" > </canvas>
+
+
+		<div id="chat-text" style ="width:500px; height:100px; overflow-y:scroll">
+		</div>
+
+		<form id="chat-form">
+			<input id="chat-input" type="text" style="width:500px"></input>
+		</form>
+	</div>
+
+
+
+	<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+	<script>
+
+		var socket = io();
+
+		//sign
+		var signDiv = document.getElementById('signDiv');
+		var signDivUsername = document.getElementById('signDiv-username');
+		var signDivPassword = document.getElementById('signDiv-password');
+		var signDivSignUp = document.getElementById('signDiv-signUp');
+		var signDivSignIn = document.getElementById('signDiv-signIn');
+
+		//signin
+		signDivSignIn.onclick = function(){
+			socket.emit('signIn', {username:signDivUsername.value, 
+									password:signDivPassword.value});
+		}
+		socket.on('signInResponse', function(data){
+			if(data.success){
+				signDiv.style.display = 'none';
+				gameDiv.style.display = 'inline-block';
+			} else {
+				alert("sign in unsuccessful");
+			}
+		})
+
+		//signup
+		signDivSignUp.onclick = function(){
+			socket.emit('signUp', {username:signDivUsername.value, 
+									password:signDivPassword.value});
+		}
+		socket.on('signUpResponse', function(data){
+			if(data.success){
+				alert("sign up successful")
+			} else {
+				alert("sign up unsuccessful");
+			}
+		})
+
+
+		//game
+		var chatText = document.getElementById('chat-text');
+		var chatInput = document.getElementById('chat-input');
+		var chatForm =  document.getElementById('chat-form');
+
+		var canvas = document.getElementById('ctx');
+		var ctx = document.getElementById("ctx").getContext("2d");
+
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+
+
+		// load image
+		var image = new Image();  
+		image.src = 'client/img/thing2.png'; 
+ 
+
+		ctx.font = "15px Arial";
+
+	
+		//init socket connection
+		
+
+		socket.on('newPositions', function(data){
+			ctx.clearRect(0,0,canvas.width,canvas.height);
+
+			for(var i = 0;i< data.player.length; i++){
+				ctx.drawImage(image, data.player[i].x, data.player[i].y, 128, 128);
+				// ctx.fillText(data.player[i].number, data.player[i].x, data.player[i].y);
+			}
+
+			for(var i = 0;i< data.bullet.length; i++){
+				// ctx.fillText("-", data.bullet[i].x, data.bullet[i].y);
+				ctx.fillRect(data.bullet[i].x,data.bullet[i].y,4,4);
+			}
+			
+		});
+
+		socket.on('addToChat', function(data){
+			chatText.innerHTML += '<div>' +data+ '</div>';
+		});
+
+		socket.on('evalAnswer', function(data){
+			chatText.innerHTML += '<div>' +data+ '</div>';
+			console.log(data);
+		});
+
+		chatForm.onsubmit = function(e){
+			e.preventDefault();
+			if(chatInput.value[0] === '/'){
+				socket.emit('evalServer',chatInput.value.slice(1));
+			} else {
+				socket.emit('sendMsgToServer',chatInput.value);
+			}
+			
+			chatInput.value = "";
+		}
+
+		document.onkeydown = function(event){
+			if(event.keyCode === 68){
+				//D
+				socket.emit('keyPress', {inputId:"right", state:true});
+			} else if(event.keyCode === 83){
+				//S
+				socket.emit('keyPress', {inputId:"down", state:true});
+			} else if(event.keyCode === 65){
+				//A
+				socket.emit('keyPress', {inputId:"left", state:true});
+			} else if(event.keyCode === 87){
+				//W
+				socket.emit('keyPress', {inputId:"up", state:true});
+			} 
+		}
+
+		document.onkeyup = function(event){
+			if(event.keyCode === 68){
+				//D
+				socket.emit('keyPress', {inputId:"right", state:false});
+			} else if(event.keyCode === 83){
+				//S
+				socket.emit('keyPress', {inputId:"down", state:false});
+			} else if(event.keyCode === 65){
+				//A
+				socket.emit('keyPress', {inputId:"left", state:false});
+			} else if(event.keyCode === 87){
+				//W
+				socket.emit('keyPress', {inputId:"up", state:false});
+			}
+		}
+
+
+		document.onmousedown = function(event){
+			socket.emit('keyPress', {inputId:'attack', state:true});
+		}
+
+		document.onmouseup = function(event){
+			socket.emit('keyPress', {inputId:'attack', state:false});
+			console.log("attack press");
+		}
+
+		document.onmousemove = function(event){
+			var x = -(canvas.width/2) +event.clientX - 8;
+			var y = -(canvas.height/2) +event.clientY - 8;
+
+			var angle = Math.atan2(y,x)/Math.PI *180;
+			socket.emit('keyPress', {inputId:'mouseAngle', state:angle});
+			// console.log(angle);
+		}
+	</script>
+
+
+	</body>
+</html>
