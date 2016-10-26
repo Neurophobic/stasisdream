@@ -1,5 +1,7 @@
 var mongojs = require('mongojs');
-var db = mongojs('localhost:27017/myGame', ['account','progress']);
+
+var db = null;
+// var db = mongojs('localhost:27017/myGame', ['account','progress']);
 
 var express = require('express');
 var app = express();
@@ -12,7 +14,7 @@ app.get('/', function(req, res){
 });
 app.use('/client',express.static(__dirname+'/client'));
 
-serv.listen(2000);
+serv.listen(process.env.PORT || 2000);
 console.log("SERVER ONLINE");
 
 //SOCKETS
@@ -271,6 +273,10 @@ var USERS = {
 }
 
 var isValidPassword = function(data,callback){
+
+	//nodb
+	return callback(true);
+
 	db.account.find({username:data.username,password:data.password}, function(err,res){
 		if(res[0]){
 			//if there is a match
@@ -282,6 +288,8 @@ var isValidPassword = function(data,callback){
 }
 
 var isUsernameTaken = function(data,callback){
+	//nodb
+	return callback(false);
 	db.account.find({username:data.username}, function(err,res){
 		if(res[0]){
 			//if there is amatch
@@ -293,6 +301,8 @@ var isUsernameTaken = function(data,callback){
 }
 
 var addUser = function(data,callback){
+	//nodb
+	return callback();
 	db.account.insert({username:data.username, password:data.password}, function(err){
 		callback();
 	});
