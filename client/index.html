@@ -93,6 +93,12 @@
 		// load image
 		var image = new Image();  
 		image.src = 'client/img/thing2.png'; 
+
+		var Img = {};
+		Img.player = new Image();
+		Img.player.src = '/client/img/thing2.png';
+		Img.map = new Image();
+		Img.map.src = '/client/img/map1.jpg'
  
 
 		ctx.font = "15px Arial";
@@ -103,6 +109,24 @@
 			self.number = initPack.number;
 			self.x = initPack.x;
 			self.y = initPack.y;
+			self.hp = initPack.hp;
+			self.maxHp = initPack.maxHp;
+			self.score = initPack.score;
+
+			self.draw = function(){
+				var hpWidth = 200 * self.hp / self.hpMax;
+				var height =  128;
+				var width = 128;
+
+					var x = self.x - Player.list[selfId].x +canvas.width/2;
+				var y = self.y - Player.list[selfId].y + canvas.height/2;
+
+				ctx.drawImage(Img.player, 0, 0, width, height,x-width/2,y-height/2, width,height);
+				ctx.fillRect(self.x , self.y - 40, hpWidth, 4);
+				// ctx.fillText(self.score, self.x, self.y-20);
+				ctx.fillText(self.hp, x, y-0);
+			};
+
 			Player.list[self.id] = self;
 			return self;
 		}
@@ -113,6 +137,12 @@
 			self.id = initPack.id;
 			self.x = initPack.x;
 			self.y = initPack.y;
+
+			self.draw = function(){
+				var x = self.x - Player.list[selfId].x +canvas.width/2;
+				var y = self.y - Player.list[selfId].y + canvas.height/2;
+				ctx.fillRect(x,y,4,4);
+			};
 			Bullet.list[self.id] = self;
 			return self;
 		}
@@ -120,13 +150,20 @@
 		Bullet.list = {};
 
 
+		//who is the client?
+		var selfId = null;
+
+
 		socket.on('init', function(data){
+			if(data.selfId){
+				selfId = data.selfId;
+			};
 			for(var i=0; i < data.player.length; i++){
 				new Player(data.player[i]);
-			}
+			};
 			for(var i=0; i < data.bullet.length; i++){
 				new Bullet(data.bullet[i]);
-			}
+			};
 		});
 
 		socket.on('update', function(data){
@@ -139,6 +176,12 @@
 					}
 					if(pack.y !== undefined){
 						p.y = pack.y;
+					}
+					if(pack.hp !== undefined){
+						p.hp = pack.hp;
+					}
+					if(pack.score !== undefined){
+						p.score = pack.score;
 					}
 				}
 			}
@@ -169,17 +212,34 @@
 
 
 		setInterval(function(){
+			if(!selfId){
+				return;
+			};
 			ctx.clearRect(0,0,canvas.width,canvas.height);
 
+			drawMap();
+			drawScore();
+
 			for(var i in Player.list){
-				ctx.drawImage(image, Player.list[i].x, Player.list[i].y, 128, 128);
-			}
+				Player.list[i].draw();
+			};
 
 			for(var i in Bullet.list){
-				ctx.fillRect(Bullet.list[i].x,Bullet.list[i].y,4,4);
-			}
+				
+				Bullet.list[i].draw();
+			};
 		}, 40);
 
+		var drawMap = function(){
+			var x = canvas.width/2 - Player.list[selfId].x;
+			var y = canvas.height/2 - Player.list[selfId].y;
+
+			ctx.drawImage(Img.map, x,y);
+		};
+
+		var drawScore = function(){
+			ctx.fillText(Player.list[selfId].score,0,30);
+		}
 	
 
 
