@@ -22,13 +22,31 @@ console.log("SERVER ONLINE");
 var SOCKET_LIST = {};
 // var PLAYER_LIST = {};
 
-var Entity = function(){
+var Entity = function(param){
 	var self = {
 		x:240,
 		y:135,
 		spdX:0,
 		spdY:0,
 		id:"",
+		map:'forest'
+	}
+
+	if(param){
+		if(param.x){
+			self.x = param.x;
+		}
+		if(param.y){
+			self.y = param.y;
+		}
+		if(param.map){
+			self.map = param.map;
+		}
+		if(param.id){
+			console.log("got id");
+			self.id = param.id;
+			console.log(self.id);
+		}
 	}
 
 	self.update = function(){
@@ -46,10 +64,10 @@ var Entity = function(){
 
 	return self;
 }
-var Player = function(id){
+var Player = function(param){
 
-	var self = Entity();
-	self.id = id;
+	var self = Entity(param);
+	// self.id = id;
 	self.number = ""+ Math.floor(10 *Math.random());
 	self.pressingRight=false;
 	self.pressingLeft=false;
@@ -57,10 +75,11 @@ var Player = function(id){
 	self.pressingDown=false;
 	self.pressingAttack = false;
 	self.mouseAngle = 0;
-	self.maxSpd = 10;
+	self.maxSpd = 20;
 	self.hp = 10;
 	self.hpMax = 10;
 	self.score = 0;
+	self.isMoving = false;
 	
 	var super_update = self.update;
 	self.update = function(){
@@ -73,10 +92,15 @@ var Player = function(id){
 
 	}
 
-	self.shootBullet = function( angle){
-		var b = Bullet(self.id,angle);
-		b.x = self.x;
-		b.y = self.y;
+	self.shootBullet = function(angle){
+		var b = Bullet({
+			parent:self.id,
+			angle:angle,
+			x:self.x,
+			y:self.y,
+			map:self.map,
+			});
+		
 	}
 
 	self.updateSpd = function(){
@@ -106,6 +130,7 @@ var Player = function(id){
 			hp:self.hp,
 			maxHp: self.maxHp,
 			score: self.score,
+			map:self.map,
 
 		};
 	};
@@ -117,10 +142,12 @@ var Player = function(id){
 			y:self.y,
 			hp:self.hp,
 			score:self.score,
+			isMoving:self.isMoving,
+			mouseAngle:self.mouseAngle
 		};
 	};
 
-	Player.list[id] = self;
+	Player.list[self.id] = self;
 	initPack.player.push(self.getInitPack());
 	return self;
 }
@@ -128,17 +155,28 @@ var Player = function(id){
 Player.list = {};
 Player.onConnect = function(socket){
 	console.log("[p] on connect::" +socket.id );
-	var player = Player(socket.id);
+	var map = 'forest';
+	// if(Math.random() < 0.5){
+	// 	map = 'field';
+	// }
+	var player = Player({
+		id:socket.id,
+		map:map,
+	});
 
 	socket.on('keyPress', function(data){
 		if(data.inputId==="right"){
 			player.pressingRight = data.state;
+			player.isMoving = data.state;
 		} else if(data.inputId==="left"){
 			player.pressingLeft = data.state;
+			player.isMoving = data.state;
 		} else if(data.inputId==="down"){
 			player.pressingDown = data.state;
+			player.isMoving = data.state;
 		} else if(data.inputId==="up"){
 			player.pressingUp = data.state;
+			player.isMoving = data.state;
 		} else if(data.inputId === "attack"){
 			player.pressingAttack = data.state;
 			// console.log("got attack");
@@ -182,12 +220,12 @@ Player.update = function(){
 	return pack;
 }
 
-var Bullet = function(parent, angle){
-	var self = Entity();
+var Bullet = function(param){
+	var self = Entity(param);
 	self.id = Math.random();
-	self.spdX = Math.cos(angle/180*Math.PI) * 10;
-	self.spdY = Math.sin(angle/180*Math.PI) * 10;
-	self.parent = parent;
+	self.spdX = Math.cos(param.angle/180*Math.PI) * 10;
+	self.spdY = Math.sin(param.angle/180*Math.PI) * 10;
+	self.parent = param.parent;
 	self.timer = 0;
 	self.toRemove = false;
 
@@ -200,7 +238,7 @@ var Bullet = function(parent, angle){
 
 		for(var i in Player.list){
 			var p = Player.list[i];
-			if( self.getDistance(p) < 32 && self.parent !== p.id){
+			if( self.getDistance(p) < 32 && self.parent !== p.id && self.map === p.map){
 				p.hp -= 1;
 				var shooter = Player.list[self.parent];
 				if(shooter){
@@ -222,6 +260,7 @@ var Bullet = function(parent, angle){
 			id:self.id,
 			x:self.x,
 			y:self.y,
+			map:self.map,
 		};
 	};
 
