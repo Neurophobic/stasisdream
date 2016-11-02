@@ -30,7 +30,7 @@ var Entity = function(param){
 		spdY:0,
 		id:"",
 		map:'forest'
-	}
+	};
 
 	if(param){
 		if(param.x){
@@ -51,19 +51,19 @@ var Entity = function(param){
 
 	self.update = function(){
 		self.updatePosition();
-	}
+	};
 
 	self.updatePosition = function(){
 		self.x += self.spdX;
 		self.y += self.spdY;
-	}
+	};
 
 	self.getDistance = function(pt){
 		return Math.sqrt(Math.pow(self.x-pt.x,2) + Math.pow(self.y-pt.y,2));
-	}
+	};
 
 	return self;
-}
+};
 var Player = function(param){
 
 	var self = Entity(param);
@@ -90,7 +90,7 @@ var Player = function(param){
 			self.shootBullet(self.mouseAngle);
 		}
 
-	}
+	};
 
 	self.shootBullet = function(angle){
 		var b = Bullet({
@@ -101,7 +101,7 @@ var Player = function(param){
 			map:self.map,
 			});
 		
-	}
+	};
 
 	self.updateSpd = function(){
 		if(self.pressingRight){
@@ -119,7 +119,7 @@ var Player = function(param){
 		} else {
 			self.spdY = 0;
 		}
-	}
+	};
 
 	self.getInitPack = function(){
 		return{
@@ -150,7 +150,7 @@ var Player = function(param){
 	Player.list[self.id] = self;
 	initPack.player.push(self.getInitPack());
 	return self;
-}
+};
 
 Player.list = {};
 Player.onConnect = function(socket){
@@ -193,7 +193,7 @@ Player.onConnect = function(socket){
 		selfId:socket.id,
 		player:Player.getAllInitPack(),
 		bullet:Bullet.getAllInitPack(),
-	})
+	});
 };
 
 Player.getAllInitPack = function(){
@@ -201,14 +201,14 @@ Player.getAllInitPack = function(){
 	for(var i in Player.list){
 		//get all the players inits
 		players.push(Player.list[i].getInitPack());
-	};
+	}
 	return players;
-}
+};
 
 Player.onDisconnect = function(socket){
 	delete Player.list[socket.id];
 	removePack.player.push(socket.id);
-}
+};
 
 Player.update = function(){
 	var pack = [];
@@ -218,7 +218,7 @@ Player.update = function(){
 		pack.push(player.getUpdatePack());
 	}
 	return pack;
-}
+};
 
 var Bullet = function(param){
 	var self = Entity(param);
@@ -253,7 +253,7 @@ var Bullet = function(param){
 				self.toRemove = true;
 			}
 		}
-	}
+	};
 
 	self.getInitPack = function(){
 		return {
@@ -275,7 +275,7 @@ var Bullet = function(param){
 	Bullet.list[self.id] = self;
 	initPack.bullet.push(self.getInitPack());
 	return self;
-}
+};
 Bullet.list = {};
 
 Bullet.update = function(){
@@ -299,7 +299,7 @@ Bullet.getAllInitPack = function(){
 	for(var i in Bullet.list){
 		//get all the bullet inits
 		bullets.push(Bullet.list[i].getInitPack());
-	};
+	}
 	return bullets;
 };
 
@@ -309,7 +309,7 @@ var USERS = {
 	//username:pass
 	"bob":"asd",
 	"bob2":"asd2"
-}
+};
 
 var isValidPassword = function(data,callback){
 
@@ -324,7 +324,7 @@ var isValidPassword = function(data,callback){
 			callback(false);
 		}
 	});
-}
+};
 
 var isUsernameTaken = function(data,callback){
 	//nodb
@@ -336,8 +336,8 @@ var isUsernameTaken = function(data,callback){
 		}else{
 			callback(false);
 		}
-	})
-}
+	});
+};
 
 var addUser = function(data,callback){
 	//nodb
@@ -345,7 +345,7 @@ var addUser = function(data,callback){
 	db.account.insert({username:data.username, password:data.password}, function(err){
 		callback();
 	});
-}
+};
 
 var io = require('socket.io')(serv,{});
 io.sockets.on('connection', function(socket){
@@ -415,7 +415,7 @@ setInterval(function(){
 	var pack = {
 		player:Player.update(),
 		bullet:Bullet.update(),
-	}
+	};
 	
 	for(var i in SOCKET_LIST){
 		var socket = SOCKET_LIST[i];
