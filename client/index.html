@@ -80,6 +80,13 @@
 
 
 		//game
+
+		var mapArray = [
+			[2,2,2,2,2,0,0,2,2,2,2],
+			[1,0,0,0,0,0,0,2,0,0,0],
+			[1,0,0,0,0,0,0,0,0,0,0],
+			[1,1,1,0,1,1,1,0,0,0,1],
+		];
 		var chatText = document.getElementById('chat-text');
 		var chatInput = document.getElementById('chat-input');
 		var chatForm =  document.getElementById('chat-form');
@@ -98,7 +105,7 @@
 		Img.player = new Image();
 		Img.player.src = '/client/img/runningForward.png';
 		Img.player1 = new Image();
-		Img.player1.src = '/client/img/player.png';
+		Img.player1.src = '/client/img/standing2.png';
 
 
 		Img.map = {};
@@ -144,8 +151,8 @@
 				var walkMod = frameCount % 10;
 				// console.log(self.isMoving);
 				var hpWidth = 200 * self.hp / self.hpMax;
-				var height =  128;
-				var width = 48;
+				var height =  196;
+				var width = 64;
 
 
 				var x = self.x - Player.list[selfId].x +canvas.width/2;
@@ -169,7 +176,7 @@
 				}
 
 				if(self.isMoving){
-					ctx.drawImage(Img.player, walkMod*width, 0, width, height,x-width/2,y-height/2, width,height);
+					ctx.drawImage(Img.player, walkMod*width, 0, width, height,x-width/2,y-height/2, width*2,height*2);
 				} else {
 					ctx.drawImage(Img.player1, directionMod*width, 0, width, height,x-width/2,y-height/2, width,height);
 				}
