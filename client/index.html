@@ -103,7 +103,7 @@
 
 		var Img = {};
 		Img.player = new Image();
-		Img.player.src = '/client/img/runningForward.png';
+		Img.player.src = '/client/img/runningToward.png';
 		Img.player1 = new Image();
 		Img.player1.src = '/client/img/standing2.png';
 
@@ -148,7 +148,7 @@
 					return;
 				}
 				frameCount++;
-				var walkMod = frameCount % 10;
+				var walkMod = frameCount % 12;
 				// console.log(self.isMoving);
 				var hpWidth = 200 * self.hp / self.hpMax;
 				var height =  196;
@@ -175,15 +175,13 @@
 					directionMod = 0;
 				}
 
+				mapCollision(x,y);
 				if(self.isMoving){
-					ctx.drawImage(Img.player, walkMod*width, 0, width, height,x-width/2,y-height/2, width*2,height*2);
+					ctx.drawImage(Img.player, walkMod*width, 0, width, height,x-width/2,y-height/2, width,height);
 				} else {
 					ctx.drawImage(Img.player1, directionMod*width, 0, width, height,x-width/2,y-height/2, width,height);
 				}
-				
-				ctx.fillRect(self.x , self.y - 40, hpWidth, 4);
-				// ctx.fillText(self.score, self.x, self.y-20);
-				ctx.fillText(self.hp, x, y-0);
+			
 			};
 
 			Player.list[self.id] = self;
@@ -299,12 +297,41 @@
 			};
 		}, 40);
 
-		var mapArray = [
-			[2,2,2,2,2,0,0,2,2,2,2],
-			[1,0,0,0,0,0,0,2,0,0,0],
-			[1,0,0,0,0,0,0,0,0,0,0],
-			[1,1,1,0,1,1,1,0,0,0,1],
-		];
+		var mapCollision = function(x,y){
+			var mapX = canvas.width/2 - Player.list[selfId].x;
+			var mapY = canvas.height/2 - Player.list[selfId].y;
+			var modX = 0;
+			var modY = 0;
+
+
+
+			for(var r=0; r < mapArray.length; r++){
+					//row
+					for(var c=0; c < mapArray[r].length; c++){
+						//column
+						if(mapArray[r][c] == 1){
+							var tileStartX = mapX + modX;
+							var tileStartY = mapY + modY;
+							var tileEndX = tileStartX + 64;
+							var tileEndY = tileStartY + 64;
+
+							if (tileStartX < x + 64 &&
+   tileStartX + 64 > x &&
+   tileStartY < y + 64 &&
+   64 + tileStartY> y) {
+
+						console.log("colloollision");
+    // collision detected!
+}
+
+						}
+
+						modX+=64;
+					}
+					modX = 0;
+					modY+= 64;
+				};
+		};
 
 		var drawMap = function(){
 			var x = canvas.width/2 - Player.list[selfId].x;
