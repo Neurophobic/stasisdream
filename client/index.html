@@ -29,12 +29,12 @@
 		<canvas id="ctx" > </canvas>
 
 
-		<div id="chat-text" style ="width:500px; height:100px; overflow-y:scroll">
+		<!-- <div id="chat-text" style ="width:500px; height:100px; overflow-y:scroll">
 		</div>
 
 		<form id="chat-form">
 			<input id="chat-input" type="text" style="width:500px"></input>
-		</form>
+		</form> -->
 	</div>
 
 
@@ -79,10 +79,21 @@
 		})
 
 
+ 
+
+
 		//game
 
+
+
+
 		var mapArray = [
-			[2,2,2,2,2,0,0,2,2,2,2],
+		[0,0,0,0,0,0,0,0,0,0,0],
+		[0,0,0,0,0,0,0,0,0,0,0],
+		[0,0,0,0,0,0,0,0,0,0,0],
+		[0,0,0,0,0,0,0,0,0,0,0],
+		[0,0,0,0,0,0,0,0,0,0,0],
+			["tc",2,2,2,2,0,0,2,2,2,2],
 			[1,0,0,0,0,0,0,2,0,0,0],
 			[1,0,0,0,0,0,0,0,0,0,0],
 			[1,1,1,0,1,1,1,0,0,0,1],
@@ -96,6 +107,10 @@
 
 		canvas.width = window.innerWidth;
 		canvas.height = window.innerHeight;
+
+
+
+
 
 		// load image
 		var image = new Image();  
@@ -121,10 +136,80 @@
 		Img.green.src = 'client/img/floorTile1.png';
 		Img.wallTop = new Image();
 		Img.wallTop.src = 'client/img/wallTop.png';
+		Img.tallCorner = new Image();
+		Img.tallCorner.src = 'client/img/cornerTall.png';
+		Img.floorSet1 = new Image();
+		Img.floorSet1.src = 'client/img/floorSet1.png';
+		Img.nothing = new Image();
+		Img.nothing.src = 'client/img/nothing.png';
+		Img.bridgeWindow = new Image();
+		Img.bridgeWindow.src = 'client/img/bridgeWindow.png';
 
  
 
 		ctx.font = "15px Arial";
+
+ stars1 = new starlayer(40,20,"#8b9fa5");
+    stars2 = new starlayer(50,15,"#93a9b5");
+    stars3 = new starlayer(60,10,"#bdc5c7");
+var g;
+var c;
+var stars1;
+var stars2;
+var stars3;
+	function star() {
+    	this.x = Math.floor(Math.random()*canvas.width);
+    	this.y = Math.floor(Math.random()*canvas.height);
+    	this.move = function(speed) {
+        	this.y = this.y + speed;
+        		if (this.y>canvas.height) { 
+            		this.y = 0;
+            		this.x = Math.floor(Math.random()*canvas.width);
+        		}
+    		}
+   	 	this.draw = function(colour) {
+        ctx.fillStyle = colour;
+        ctx.fillRect(this.x,this.y,2,2);
+    	}
+	};
+
+
+	function starlayer(count,speed,colour) {
+    this.count = count;
+    this.speed = speed;
+    this.colour = colour;
+    this.stars = new Array(this.count);
+    for (i=0; i<this.count; i++) {
+        this.stars[i] = new star();
+    }
+    this.move = function() {
+        for (i=0; i<this.count; i++) {
+            this.stars[i].move(this.speed);
+        }
+    }
+    this.draw = function() {
+        for (i=0; i<this.count; i++) {
+            this.stars[i].draw(this.colour);
+        }
+    }
+};
+
+function star_render() {
+    // clear canvas
+    ctx.fillStyle = '#030303';      
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    
+    stars1.move();
+    stars2.move();
+    stars3.move();
+    stars3.draw();
+    stars2.draw();
+    stars1.draw();
+    
+   
+}
+
+
 
 		var Player = function(initPack){
 			var self = {};
@@ -138,6 +223,7 @@
 			self.isMoving = false;
 			self.mouseAngle= 100;
 			self.map = initPack.map;
+			self.playerMap = initPack.playerMap;
 
 
 			var frameCount = 0;
@@ -175,11 +261,14 @@
 					directionMod = 0;
 				}
 
-				mapCollision(x,y);
+				// mapCollision(x,y);
 				if(self.isMoving){
-					ctx.drawImage(Img.player, walkMod*width, 0, width, height,x-width/2,y-height/2, width,height);
+					ctx.drawImage(Img.player, walkMod*width, 0, width, height,x,y, width,height);
 				} else {
-					ctx.drawImage(Img.player1, directionMod*width, 0, width, height,x-width/2,y-height/2, width,height);
+					ctx.drawImage(Img.player1, directionMod*width, 0, width, height,x,y, width,height);
+
+					// ctx.rect(x-width/2,y-height/2,width,height);
+					// ctx.stroke();
 				}
 			
 			};
@@ -283,7 +372,7 @@
 				return;
 			};
 			ctx.clearRect(0,0,canvas.width,canvas.height);
-
+			star_render()
 			drawMap();
 			drawScore();
 
@@ -302,6 +391,8 @@
 			var mapY = canvas.height/2 - Player.list[selfId].y;
 			var modX = 0;
 			var modY = 0;
+			var playerBoxH = 64;
+			var playerBoxW = 32;
 
 
 
@@ -339,19 +430,26 @@
 
 			if(Player.list[selfId].map === 'forest'){
 
+				var theMap = Player.list[selfId].playerMap;
+
 			var modX = 0;
 			var modY = 0;
 
-				for(var r=0; r < mapArray.length; r++){
+				for(var r=0; r < theMap.length; r++){
 					//row
-					for(var c=0; c < mapArray[r].length; c++){
+					for(var c=0; c < theMap[r].length; c++){
 						//column
-						if(mapArray[r][c] == 0){
-							ctx.drawImage(Img.green, x+modX, y+modY);
-						}else if(mapArray[r][c] == 1){
+						if(theMap[r][c].code == 0){
+							
+							ctx.drawImage(Img.floorSet1,theMap[r][c].rand*64,0,64,64, x+modX, y+modY,64,64);
+						}else if(theMap[r][c].code == 1){
 							ctx.drawImage(Img.black, x+modX, y+modY);
-						}else if(mapArray[r][c] ==2){
-							ctx.drawImage(Img.wallTop, x+modX, (y+modY)-(Img.wallTop.height/2));
+						}else if(theMap[r][c].code == 2){
+							ctx.drawImage(Img.wallTop, x+modX, (y+modY)-(Img.wallTop.height-64));
+						}else if(theMap[r][c].code == 9){
+							ctx.drawImage(Img.nothing, x+modX, y+modY);
+						} else if(theMap[r][c].code == 3){
+							ctx.drawImage(Img.bridgeWindow, x+modX, (y+modY)-(Img.wallTop.height-64));
 						}
 						modX+=64;
 					}
@@ -385,16 +483,16 @@
 			console.log(data);
 		});
 
-		chatForm.onsubmit = function(e){
-			e.preventDefault();
-			if(chatInput.value[0] === '/'){
-				socket.emit('evalServer',chatInput.value.slice(1));
-			} else {
-				socket.emit('sendMsgToServer',chatInput.value);
-			}
+		// chatForm.onsubmit = function(e){
+		// 	e.preventDefault();
+		// 	if(chatInput.value[0] === '/'){
+		// 		socket.emit('evalServer',chatInput.value.slice(1));
+		// 	} else {
+		// 		socket.emit('sendMsgToServer',chatInput.value);
+		// 	}
 			
-			chatInput.value = "";
-		}
+		// 	chatInput.value = "";
+		// }
 
 		document.onkeydown = function(event){
 			if(event.keyCode === 68){

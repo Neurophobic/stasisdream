@@ -1,4 +1,5 @@
 var mongojs = require('mongojs');
+var maps = require('./map.js');
 
 var db = null;
 // var db = mongojs('localhost:27017/myGame', ['account','progress']);
@@ -20,6 +21,102 @@ console.log("SERVER ONLINE");
 //SOCKETS
 
 var SOCKET_LIST = {};
+
+var mapArray = maps.mapArray;
+
+var mapGen = function(mapArr){
+	var theTile ={"code":"", "rand":""};
+	var theMap =[];
+	for(var r=0; r< mapArr.length;r++){
+		theMap.push([]);
+		for(var c=0; c<mapArr[r].length; c++){
+			if(mapArr[r][c] === 0){
+				var floorMod = Math.floor(Math.random() * (9 - 0 + 1)) + 0;
+				theTile.code = 0;
+				theTile.rand = floorMod;
+			} else if(mapArr[r][c] === 1){
+				theTile.code = 1;
+			} else if(mapArr[r][c] === 2){
+				theTile.code = 2;
+			}  else if(mapArr[r][c] === 9){
+				theTile.code = 9;
+			}  else if(mapArr[r][c] === 3){
+				theTile.code = 3;
+			}
+			theMap[r].push(theTile);
+			theTile ={"code":"", "rand":""};
+		}
+	}
+	return theMap;
+};
+
+var floorArray = maps.floor;
+var floorGen = function(floorArr){
+	var theTile= {"is":false,"title":"", "rand":""};
+	var floors = [];
+
+	for(var r=0; r< floorArr.lenth; r++){
+		floors.push([]);
+		for(var c=0; c < floorArr[r].length; c++){
+			if(floors[r][c] == 0){
+				theTile.title = "empty";
+				theTile.is = false;
+			} else if(floors[r][c] == 1){
+				var floorMod = Math.floor(Math.random() * (9 - 0 + 1)) + 0;
+				theTile.rand = floorMod;
+				theTile.title = "floorTile";
+				theTile.is = true;
+			}
+			floors[r].push(theTile);
+			var theTile= {"is":false,"title":"", "rand":""};
+		}
+	}
+}
+
+var theMap = mapGen(mapArray);
+console.log(theMap);
+
+var mapCollision = function(x,y){
+	var mapX = 0;
+	var mapY = 0;
+	var modX = 0;
+	var modY = 0;
+	var playerBoxH = 196;
+	var playerBoxW = 64;
+
+
+
+	for(var r=0; r < theMap.length; r++){
+		//row
+		for(var c=0; c < theMap[r].length; c++){
+		//column
+			if(theMap[r][c].code == 1 ||theMap[r][c].code == 2 ){
+				var tileStartX = mapX + modX;
+				var tileStartY = mapY + modY;
+				var tileEndX = tileStartX + 64;
+				var tileEndY = tileStartY + 64;
+
+				
+
+				if (tileStartX < x + (playerBoxW ) &&
+   					tileStartX + 64 > x &&
+   					tileStartY < y + (playerBoxH ) &&
+   					64 + tileStartY> y+(playerBoxH*0.8) ) {
+
+					
+					return true;
+    // collision detected!
+				}
+			}
+
+			modX+=64;
+		}
+		modX = 0;
+		modY+= 64;
+	};
+	return false;
+}
+
 // var PLAYER_LIST = {};
 
 var Entity = function(param){
@@ -54,8 +151,17 @@ var Entity = function(param){
 	};
 
 	self.updatePosition = function(){
-		self.x += self.spdX;
-		self.y += self.spdY;
+
+		if(mapCollision(self.x+self.spdX, self.y + self.spdY)){
+			console.log("collision");
+			self.x = self.x;
+			self.y = self.y;
+			
+		} else {
+			self.x += self.spdX;
+		self.y += self.spdY;	
+		}
+		
 	};
 
 	self.getDistance = function(pt){
@@ -80,6 +186,7 @@ var Player = function(param){
 	self.hpMax = 10;
 	self.score = 0;
 	self.isMoving = false;
+	self.playerMap = theMap;
 	
 	var super_update = self.update;
 	self.update = function(){
@@ -131,6 +238,7 @@ var Player = function(param){
 			maxHp: self.maxHp,
 			score: self.score,
 			map:self.map,
+			playerMap:self.playerMap
 
 		};
 	};
