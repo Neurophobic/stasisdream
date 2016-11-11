@@ -149,17 +149,21 @@
 
 		ctx.font = "15px Arial";
 
- stars1 = new starlayer(40,20,"#8b9fa5");
-    stars2 = new starlayer(50,15,"#93a9b5");
-    stars3 = new starlayer(60,10,"#bdc5c7");
+ stars1 = new starlayer(30,12,"#8b9fa5");
+    stars2 = new starlayer(40,5,"#93a9b5");
+    stars3 = new starlayer(60,2,"#bdc5c7");
 var g;
 var c;
 var stars1;
 var stars2;
 var stars3;
+
+
 	function star() {
+		var starColors = ["#8b9fa5","#93a9b5","#bdc5c7", "#DFE9AA","#4B6D85","#AA5A67"];
     	this.x = Math.floor(Math.random()*canvas.width);
     	this.y = Math.floor(Math.random()*canvas.height);
+    	this.color = starColors[Math.floor(Math.random()*starColors.length)];
     	this.move = function(speed) {
         	this.y = this.y + speed;
         		if (this.y>canvas.height) { 
@@ -168,7 +172,7 @@ var stars3;
         		}
     		}
    	 	this.draw = function(colour) {
-        ctx.fillStyle = colour;
+        ctx.fillStyle = this.color;
         ctx.fillRect(this.x,this.y,2,2);
     	}
 	};
@@ -196,7 +200,7 @@ var stars3;
 
 function star_render() {
     // clear canvas
-    ctx.fillStyle = '#030303';      
+    ctx.fillStyle = '#231C24';      
     ctx.fillRect(0,0,canvas.width,canvas.height);
     
     stars1.move();
@@ -430,10 +434,39 @@ function star_render() {
 
 			if(Player.list[selfId].map === 'forest'){
 
-				var theMap = Player.list[selfId].playerMap;
+				var theMap = Player.list[selfId].playerMap[0].map;
+				var theFloor = Player.list[selfId].playerMap[0].floor;
 
+				// console.log(Player.list[selfId].playerMap[0]);
+
+				//draw the floor
 			var modX = 0;
 			var modY = 0;
+
+				for(var r=0; r < theFloor.length; r++){
+					//row
+					for(var c=0; c < theFloor[r].length; c++){
+						//column
+
+						if(theFloor[r][c].is){
+							if(theFloor[r][c].title == "floorTile"){
+								ctx.drawImage(Img.floorSet1,theFloor[r][c].rand*64,0,64,64, x+modX, y+modY,64,64);
+							}
+							
+						}else{
+
+							ctx.drawImage(Img.nothing, x+modX, y+modY);
+						}
+						modX+=64;
+					}
+					modX = 0;
+					modY+= 64;
+				};
+
+
+
+			 modX = 0;
+			 modY = 0;
 
 				for(var r=0; r < theMap.length; r++){
 					//row
@@ -441,13 +474,12 @@ function star_render() {
 						//column
 						if(theMap[r][c].code == 0){
 							
-							ctx.drawImage(Img.floorSet1,theMap[r][c].rand*64,0,64,64, x+modX, y+modY,64,64);
+							
 						}else if(theMap[r][c].code == 1){
 							ctx.drawImage(Img.black, x+modX, y+modY);
 						}else if(theMap[r][c].code == 2){
 							ctx.drawImage(Img.wallTop, x+modX, (y+modY)-(Img.wallTop.height-64));
-						}else if(theMap[r][c].code == 9){
-							ctx.drawImage(Img.nothing, x+modX, y+modY);
+			
 						} else if(theMap[r][c].code == 3){
 							ctx.drawImage(Img.bridgeWindow, x+modX, (y+modY)-(Img.wallTop.height-64));
 						}
@@ -456,7 +488,7 @@ function star_render() {
 					modX = 0;
 					modY+= 64;
 				};
-				// ctx.drawImage(Img.map['forest'], x,y);
+	
 
 			}else if(Player.list[selfId].map === 'field'){
 				ctx.drawImage(Img.map['field'], x,y);

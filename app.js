@@ -51,30 +51,41 @@ var mapGen = function(mapArr){
 };
 
 var floorArray = maps.floor;
+console.log(floorArray);
 var floorGen = function(floorArr){
 	var theTile= {"is":false,"title":"", "rand":""};
 	var floors = [];
+	console.log("floorGen!");
+	for(var r=0; r< floorArr.length; r++){
 
-	for(var r=0; r< floorArr.lenth; r++){
 		floors.push([]);
 		for(var c=0; c < floorArr[r].length; c++){
-			if(floors[r][c] == 0){
+			console.log("loop  c");
+			if(floorArr[r][c]== 0){
+				
 				theTile.title = "empty";
 				theTile.is = false;
-			} else if(floors[r][c] == 1){
+			} else if(floorArr[r][c] == 1){
+
 				var floorMod = Math.floor(Math.random() * (9 - 0 + 1)) + 0;
 				theTile.rand = floorMod;
 				theTile.title = "floorTile";
 				theTile.is = true;
 			}
+		
 			floors[r].push(theTile);
 			var theTile= {"is":false,"title":"", "rand":""};
 		}
 	}
-}
+	return floors;
+};
 
+var theFloor = floorGen(floorArray);
 var theMap = mapGen(mapArray);
-console.log(theMap);
+
+var mapStack = [{map:theMap, floor:theFloor}];
+console.log("mapstack:");
+console.log(mapStack);
 
 var mapCollision = function(x,y){
 	var mapX = 0;
@@ -153,7 +164,7 @@ var Entity = function(param){
 	self.updatePosition = function(){
 
 		if(mapCollision(self.x+self.spdX, self.y + self.spdY)){
-			console.log("collision");
+			// console.log("collision");
 			self.x = self.x;
 			self.y = self.y;
 			
@@ -186,7 +197,7 @@ var Player = function(param){
 	self.hpMax = 10;
 	self.score = 0;
 	self.isMoving = false;
-	self.playerMap = theMap;
+	self.playerMap = mapStack;
 	
 	var super_update = self.update;
 	self.update = function(){
@@ -229,6 +240,8 @@ var Player = function(param){
 	};
 
 	self.getInitPack = function(){
+		console.log("initpack");
+		console.log(self.playerMap);
 		return{
 			id:self.id,
 			x:self.x,
