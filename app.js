@@ -42,6 +42,8 @@ var mapGen = function(mapArr){
 				theTile.code = 9;
 			}  else if(mapArr[r][c] === 3){
 				theTile.code = 3;
+			} else {
+				theTile.code = mapArr[r][c];
 			}
 			theMap[r].push(theTile);
 			theTile ={"code":"", "rand":""};
@@ -132,8 +134,8 @@ var mapCollision = function(x,y){
 
 var Entity = function(param){
 	var self = {
-		x:240,
-		y:135,
+		x:300,
+		y:300,
 		spdX:0,
 		spdY:0,
 		id:"",
@@ -192,7 +194,7 @@ var Player = function(param){
 	self.pressingDown=false;
 	self.pressingAttack = false;
 	self.mouseAngle = 0;
-	self.maxSpd = 20;
+	self.maxSpd = 15;
 	self.hp = 10;
 	self.hpMax = 10;
 	self.score = 0;
@@ -264,7 +266,11 @@ var Player = function(param){
 			hp:self.hp,
 			score:self.score,
 			isMoving:self.isMoving,
-			mouseAngle:self.mouseAngle
+			mouseAngle:self.mouseAngle,
+			pressingRight:self.pressingRight,
+			pressingLeft:self.pressingLeft,
+			pressingUp:self.pressingUp,
+			pressingDown:self.pressingDown,
 		};
 	};
 
@@ -293,6 +299,7 @@ Player.onConnect = function(socket){
 			player.pressingLeft = data.state;
 			player.isMoving = data.state;
 		} else if(data.inputId==="down"){
+			console.log("dowbn");
 			player.pressingDown = data.state;
 			player.isMoving = data.state;
 		} else if(data.inputId==="up"){
